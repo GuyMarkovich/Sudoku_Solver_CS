@@ -24,7 +24,7 @@ namespace SudokuSolver
             Column = column;
             PossibleValues = new List<int>();
         }
-        public void addPossibleValue(int value) //add possible values 
+        public void addPossibleValue(int value) //add possible values to list
         {
             PossibleValues.Add(value);
         }
