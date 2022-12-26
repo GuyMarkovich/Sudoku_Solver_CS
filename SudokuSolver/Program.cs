@@ -13,6 +13,7 @@ namespace SudokuSolver
         public SudokuBoard(string nums, int boardSize = 9)
         {
             this.boardSize = boardSize;
+            //boxSize refers to the smaller boxes that are part of the sudoku board, ie in a 9x9 board a box will be a 3x3 segment
             this.boxSize = (int)Math.Sqrt(boardSize);
             int iterator = 0;
             this.grid = new int[this.boardSize, this.boardSize];
@@ -20,7 +21,7 @@ namespace SudokuSolver
             {
                 for (int j = 0; j< this.boardSize; j++)
                 {
-                    grid[i, j] = (int)nums[iterator];
+                    grid[i, j] = nums[iterator] - '0'; //input the number into the correct place in the grid (converting from char to int)
                     iterator++;
 
                 }
