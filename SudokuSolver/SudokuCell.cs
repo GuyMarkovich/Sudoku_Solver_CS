@@ -15,14 +15,14 @@ namespace SudokuSolver
         public int Column { get; set; } // column of the cell
         public List<int> PossibleValues { get; set; } //possible values that can be assigned to the cell
 
-        public SudokuCell(int value, bool isGiven, int row, int column, int matrix) // constructor function
+        public SudokuCell(int value, bool isGiven, int row, int column, List<int> possibleValues) // constructor function
         {
             Value = value;
             IsGiven = isGiven;
             IsSolved = false;
             Row = row;
             Column = column;
-            PossibleValues = new List<int>();
+            PossibleValues = possibleValues;
         }
         public void addPossibleValue(int value) //add possible values to list
         {

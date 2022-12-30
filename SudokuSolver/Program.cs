@@ -9,7 +9,7 @@ namespace SudokuSolver
     {
         private int boardSize;
         private int boxSize;
-        private int[,] grid;
+        private SudokuCell[,] grid;
 
         //constructor function for the board, default size if not specified otherwise is 9x9
         public SudokuBoard(string nums, int boardSize = 9)
@@ -18,12 +18,29 @@ namespace SudokuSolver
             //boxSize refers to the smaller boxes that are part of the sudoku board, ie in a 9x9 board a box will be a 3x3 segment
             this.boxSize = (int)Math.Sqrt(boardSize);
             int iterator = 0;
-            this.grid = new int[this.boardSize, this.boardSize];
+            this.grid = new SudokuCell[this.boardSize, this.boardSize];
             for (int i = 0; i< this.boardSize; i++)
             {
                 for (int j = 0; j< this.boardSize; j++)
                 {
-                    grid[i, j] = nums[iterator] - '0'; //input the number into the correct place in the grid (converting from char to int)
+                    int temp = nums[iterator] - '0'; //input the number into the correct place in the grid (converting from char to int)
+                    if (temp != 0)
+                    {
+                        List<int> possibleValues = new List<int>();
+                        possibleValues.Add(temp);
+                        this.grid[i, j] = new SudokuCell(temp, true, i, j, possibleValues);
+                    }
+                    else
+                    {
+                        List<int> possibleValues = new List<int>();
+                        for (int k = 1; k <= this.boardSize; k++)
+                        {
+                            possibleValues.Add(k);
+                        }
+                        this.grid[i, j] = new SudokuCell(temp, false, i, j, possibleValues);
+                    }
+
+
                     iterator++;
 
                 }
@@ -46,7 +63,7 @@ namespace SudokuSolver
                     {
                         Console.Write("| ");
                     }
-                    Console.Write(this.grid[row, col] + " ");
+                    Console.Write(this.grid[row, col].Value + " ");
                 }
                 Console.WriteLine("|");
             }
@@ -64,7 +81,7 @@ namespace SudokuSolver
             {
                 for (int j = 0; j < this.boardSize; j++)
                 {
-                    if (this.grid[i, j] == 0)
+                    if (this.grid[i, j].Value == 0)
                     {
                         // Try numbers from 1 to 9
                         for (int k = 1; k <= this.boardSize; k++)
@@ -73,13 +90,13 @@ namespace SudokuSolver
                             if (checkPlacement(i, j, k))
                             {
                                 // Assign the number and move to the next cell
-                                this.grid[i, j] = k;
+                                this.grid[i, j].Value = k;
                                 if (solveBoard())
                                 {
                                     return true;
                                 }
                                 // Backtrack and try the next number
-                                this.grid[i, j] = 0;
+                                this.grid[i, j].Value = 0;
                             }
                         }
                         return false;
@@ -94,7 +111,7 @@ namespace SudokuSolver
             // Check if the number is already used in the row
             for (int i = 0; i < 9; i++)
             {
-                if (this.grid[row, i] == num)
+                if (this.grid[row, i].Value == num)
                 {
                     return false;
                 }
@@ -103,7 +120,7 @@ namespace SudokuSolver
             // Check if the number is already used in the column
             for (int i = 0; i < 9; i++)
             {
-                if (this.grid[i, col] == num)
+                if (this.grid[i, col].Value == num)
                 {
                     return false;
                 }
@@ -116,7 +133,7 @@ namespace SudokuSolver
             {
                 for (int j = startCol; j < startCol + this.boxSize; j++)
                 {
-                    if (this.grid[i, j] == num)
+                    if (this.grid[i, j].Value == num)
                     {
                         return false;
                     }
