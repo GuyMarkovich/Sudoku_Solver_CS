@@ -1,5 +1,7 @@
 ﻿using SudokuSolver;
 using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace SudokuSolver
 {
@@ -52,6 +54,78 @@ namespace SudokuSolver
 
         }
 
+
+
+
+
+        public bool solveBoard()
+        {
+            for (int i = 0; i < this.boardSize; i++)
+            {
+                for (int j = 0; j < this.boardSize; j++)
+                {
+                    if (this.grid[i, j] == 0)
+                    {
+                        // Try numbers from 1 to 9
+                        for (int k = 1; k <= this.boardSize; k++)
+                        {
+                            // Check if the number is allowed in the current cell
+                            if (checkPlacement(i, j, k))
+                            {
+                                // Assign the number and move to the next cell
+                                this.grid[i, j] = k;
+                                if (solveBoard())
+                                {
+                                    return true;
+                                }
+                                // Backtrack and try the next number
+                                this.grid[i, j] = 0;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool checkPlacement(int row, int col, int num)
+        {
+            // Check if the number is already used in the row
+            for (int i = 0; i < 9; i++)
+            {
+                if (this.grid[row, i] == num)
+                {
+                    return false;
+                }
+            }
+
+            // Check if the number is already used in the column
+            for (int i = 0; i < 9; i++)
+            {
+                if (this.grid[i, col] == num)
+                {
+                    return false;
+                }
+            }
+
+            // Check if the number is already used in the 3x3 block
+            int startRow = row - row % this.boxSize;
+            int startCol = col - col % this.boxSize;
+            for (int i = startRow; i < startRow + this.boxSize; i++)
+            {
+                for (int j = startCol; j < startCol + this.boxSize; j++)
+                {
+                    if (this.grid[i, j] == num)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
     }
 
     
@@ -61,9 +135,14 @@ class Progs
 {
     static void Main()
     {
-        SudokuBoard s1 = new SudokuBoard("800000070006010053040600000000080400003000700020005038000000800004050061900002000");
+        Stopwatch s = new Stopwatch();
+        s.Start();
+        SudokuBoard s1 = new SudokuBoard("000700000100000000000430200000000006000509000000000418000081000002000050040000300");
         s1.printBoardFancy();
-
+        s1.solveBoard();
+        s.Stop();
+        s1.printBoardFancy();
+        Console.WriteLine(s.Elapsed);
 
     }
 }
