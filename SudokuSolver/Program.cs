@@ -135,6 +135,8 @@ namespace SudokuSolver
             return true;
         }
 
+
+        //solution utilizing an array of empty cells
         public bool solveBoardNew(int iterator = 0) //unless given a different value then function will start from the first cell in the array
         {
             if(iterator == this.emptyCells.Count())
@@ -144,10 +146,10 @@ namespace SudokuSolver
             //Console.WriteLine(iterator);
             foreach (var num in this.grid[this.emptyCells[iterator].row, this.emptyCells[iterator].col].PossibleValues)
             {
-                if (checkPlacement(this.emptyCells[iterator].row, this.emptyCells[iterator].col, num))
+                if (checkPlacement(this.emptyCells[iterator].row, this.emptyCells[iterator].col, num))//check placement for every empty cell
                 {
                     this.grid[this.emptyCells[iterator].row, this.emptyCells[iterator].col].Value = num;
-                    if (solveBoardNew(++iterator))
+                    if (solveBoardNew(++iterator)) //move recursively to the next empty cell
                     {
                         return true;
                     }
@@ -199,7 +201,7 @@ namespace SudokuSolver
         }
 
 
-        //function to eliminate candidates when they are present in given cells
+        //function to eliminate candidates from row/col/box when they are present in given cells
         private void simpleElimination(int x, int y, int val)
         {
             //eliminate from same row
@@ -212,19 +214,19 @@ namespace SudokuSolver
     
 }
 
-class Progs
-{
-    static void Main()
-    {
-        Stopwatch s = new Stopwatch();
-        s.Start();
-        SudokuBoard s1 = new SudokuBoard("800000070006010053040600000000080400003000700020005038000000800004050061900002000", 9);
-        s1.printBoardFancy();
-        s1.solveBoardNew();
-        s.Stop();
-        s1.printBoardFancy();
-        Console.WriteLine(s.Elapsed);
+//class Progs
+//{
+//    static void Main()
+//    {
+//        Stopwatch s = new Stopwatch();
+//        s.Start();
+//        SudokuBoard s1 = new SudokuBoard("800000070006010053040600000000080400003000700020005038000000800004050061900002000", 9);
+//        s1.printBoardFancy();
+//        s1.solveBoardNew();
+//        s.Stop();
+//        s1.printBoardFancy();
+//        Console.WriteLine(s.Elapsed);
 
-    }
-}
+//    }
+//}
 
