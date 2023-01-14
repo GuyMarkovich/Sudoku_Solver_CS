@@ -1,11 +1,15 @@
 ﻿using SudokuSolver;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+
+
+
 
 namespace SudokuSolver
 {
@@ -16,29 +20,64 @@ namespace SudokuSolver
         private int[,] grid;
         private long[,] possibleValues;
 
+        private long[] rowVals;
+        private long[] colVals;
+        private long[] boxVals;
+
 
         //constructor function for a board
-        public SudokuBitwiseBoard(int boardSize, string nums)
+        public SudokuBitwiseBoard(string nums)
         {
-            this.boardSize = boardSize;
-            this.boxSize = (int)Math.Sqrt(boardSize);
+            Validation val = new Validation(); //used to validate the input string
+            if (!val.validateInputLength(nums))
+            {
+                throw new Exception("Invalid input string length");
+            }
+            int boardLength = (int)Math.Sqrt(nums.Length);
+            this.boardSize = boardLength;
+            this.boxSize = (int)Math.Sqrt(this.boardSize);
             this.grid = new int[boardSize, boardSize];
             this.possibleValues = new long[boardSize, boardSize];
-            int iterator = 0;
+
+            //initialize the possible values for each row column and box
+            this.rowVals = new long[boardSize];
+            this.colVals = new long[boardSize];
+            this.boxVals = new long[boardSize];
+
             for (int i = 0; i < boardSize; i++)
             {
-                for (int j = 0; j < boardSize; j++)
+                //for each row, column and box, turn on all bits from 0 to boardSize -1
+                rowVals[i] = (1 << boardSize) - 1; 
+                colVals[i] = (1 << boardSize) - 1;
+                boxVals[i] = (1 << boardSize) - 1;
+            }
+
+
+            int iterator = 0;
+            for (int row = 0; row < boardSize; row++)
+            {
+                for (int col = 0; col < boardSize; col++)
                 {
                     int temp = nums[iterator] - '0'; //convert char to int
+                    
+                    if (!val.validNum(boardSize, temp)){
+                        throw new Exception("Invalid number in input string");
+                    }
                     if (temp != 0) //if value in given cell is not 0, add it to the matrix, set possibleValues to 0
                     {
-                        this.grid[i, j] = temp;
-                        this.possibleValues[i, j] = 1 << (temp - 1);
+                        this.grid[row, col] = temp;
+                        this.possibleValues[row, col] = 1 << (temp - 1);
+
+                        
+                        // remove the value in the given cell from the row, column and box
+                        this.rowVals[row] &= ~(1 << (temp - 1));
+                        this.colVals[col] &= ~(1 << (temp - 1));
+                        this.boxVals[getBoxNumber(row, col)] &= ~(1 << (temp - 1));
                     }
                     else //else, put a 0 on the board and fill the possible values with bits corresponding to the number of possible options
                     {
-                        this.grid[i, j] = 0;
-                        this.possibleValues[i, j] = (1 << boardSize) - 1;
+                        this.grid[row, col] = 0;
+                        this.possibleValues[row, col] = (1 << boardSize) - 1;
                     }
                     iterator++;
                 }
@@ -126,34 +165,27 @@ namespace SudokuSolver
 
             for (int val = 1; val <= this.boardSize; val++)
             {
-                long mask = 1 << (val - 1); //create a bit mask with the bit in the val-1th place set to 1
-                if ((this.possibleValues[minRow, minCol] & mask) != 0) //if corresponding bit in possible values is set to 1, it is a potential candidate
-                {
-                    //set the value of the place in the grid
-                    this.grid[minRow, minCol] = val;
-                    this.possibleValues[minRow, minCol] = 0;
-                    UpdatePossibleValues( minRow, minCol, val);
-                    if (!checkPlacement(minRow, minCol)) //if placement is illegal skip solving the next step, restore any changes and move on to the next candidate
+                
+
+                    if (checkPlacementNew(minRow, minCol, val)) //if placement is legal, continue solving
                     {
+                        this.grid[minRow, minCol] = val;
+                        this.possibleValues[minRow, minCol] = 0;
+                        UpdatePossibleValues(minRow, minCol, val);
+                        bool solvedNext = SolveBoard(); //try to continue solving
+                        if (solvedNext) //if solution successful return true
+                        {
+                            return true;
+                        }
+                        //if no solution found reset the value in the current cell and restore the checked value for all other affected cells
                         this.grid[minRow, minCol] = 0;
                         this.possibleValues[minRow, minCol] = (1 << this.boardSize) - 1;
                         RestorePossibileValues(minRow, minCol, val);
-                        continue;
                     }
-                    
-                    bool solvedNext = SolveBoard(); //try to continue solving
-                    if (solvedNext) //if solution successful return true
-                    {
-                        return true;
-                    }
-                    
-                    
-                    //if no solution found reset the value in the current cell and restore the checked value for all other affected cells
-                    this.grid[minRow, minCol] = 0;
-                    this.possibleValues[minRow, minCol] = (1 << this.boardSize) - 1;
-                    RestorePossibileValues(minRow, minCol, val);
-                  
-                }
+
+
+
+               
             }
             //if no value for the current cell worked, backtrack to the previous cell
             return false;
@@ -227,6 +259,7 @@ namespace SudokuSolver
                     this.possibleValues[row, c] &= ~(1 << (val - 1));
                 }
             }
+
             // Update the possibilities for all cells in the same column
             for (int r = 0; r < this.boardSize; r++)
             {
@@ -252,6 +285,17 @@ namespace SudokuSolver
                     }
                 }
             }
+
+
+
+
+            //update the array of rowVals
+            this.rowVals[row] &= ~(1 << (val - 1));
+            //update the array of colVals
+            this.colVals[col] &= ~(1 << (val - 1));
+            //update the array of boxVals
+            this.boxVals[getBoxNumber(row,col)] &= ~(1 << (val - 1));
+
         }
 
         private void RestorePossibileValues(int row, int col, int val)
@@ -290,8 +334,42 @@ namespace SudokuSolver
                     }
                 }
             }
+
+
+            //test
+            //update the array of rowVals
+            this.rowVals[row] |= (1 << (val - 1));
+            //update the array of colVals
+            this.colVals[col] |= (1 << (val - 1));
+            //update the array of boxVals
+            this.boxVals[getBoxNumber(row, col)] |= (1 << (val - 1));
         }
 
+        int getBoxNumber(int row, int col)
+        {
+            int box = (row / this.boxSize) * this.boxSize + (col / this.boxSize);
+            //box -= 1; //array of boxes uses zero based index, as such we need to subtract 1 from the box number
+            return box;
+        }
+
+
+        private bool checkPlacementNew(int row, int col, int val) {
+            long mask = 1 << (val - 1);
+            if ((this.rowVals[row] & mask) == 0) //check if the value is already in the row
+            {
+                return false;
+            }
+            if ((this.colVals[col] & mask) == 0) //check if the value is already in the column
+            {
+                return false;
+            }
+            if ((this.boxVals[getBoxNumber(row, col)] & mask) == 0) //check if the value is already in the box
+            {
+                return false;
+            }
+            return true;
+        }
+        
 
     }
 
@@ -299,27 +377,5 @@ namespace SudokuSolver
 
 }
 
-class Progs
-{
-    static void Main()
-    {
-        Stopwatch s = new Stopwatch();
-        s.Start();
-        SudokuBitwiseBoard s1 = new SudokuBitwiseBoard(9,"800000070006010053040600000000080400003000700020005038000000800004050061900002000");
-        s1.printBoardFancy();
-        //s1.printPossibilities();
-        if (s1.SolveBoard())
-        {
-            s1.printBoardFancy();
-        }
-        else
-        {
-            Console.WriteLine("Not solved");
-        }
-        s.Stop();
-        //s1.printPossibilities();
-        Console.WriteLine(s.Elapsed);
 
-    }
-}
 
