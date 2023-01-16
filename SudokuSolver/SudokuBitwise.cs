@@ -7,7 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-
+using static SudokuSolver.Exceptions.CustomExceptions;
 
 
 
@@ -31,7 +31,7 @@ namespace SudokuSolver
             Validation val = new Validation(); //used to validate the input string
             if (!val.validateInputLength(nums))
             {
-                throw new Exception("Invalid input string length");
+                throw new InvalidInputLengthException("Invalid input string length");
             }
             int boardLength = (int)Math.Sqrt(nums.Length);
             this.boardSize = boardLength;
@@ -60,8 +60,8 @@ namespace SudokuSolver
                 {
                     int temp = nums[iterator] - '0'; //convert char to int
                     
-                    if (!val.validNum(boardSize, temp)){
-                        throw new Exception("Invalid number in input string");
+                    if (!val.validNum(boardSize, temp)){ //check if current number is valid, if not throw exception
+                        throw new InvalidInputNumberException("Invalid number in input string, number is not within the range corresponding to the input length");
                     }
                     if (temp != 0) //if value in given cell is not 0, add it to the matrix, set possibleValues to 0
                     {
@@ -92,7 +92,7 @@ namespace SudokuSolver
                 //line borders
                 if (row % this.boxSize == 0)
                 {
-                    Console.WriteLine("+-------+-------+-------+");
+                    Console.WriteLine("+----------+----------+----------+");
                 }
 
                 for (int col = 0; col < this.boardSize; col++)
@@ -101,39 +101,61 @@ namespace SudokuSolver
                     {
                         Console.Write("| ");
                     }
-                    Console.Write(this.grid[row, col] + " ");
+                    //convert the number to string for formatting and print
+                    String numStr = Convert.ToString(this.grid[row, col]);
+                    if (this.grid[row, col] < 10)
+                    {
+                        //pad the number with a 0 if its a single digit
+                        numStr = numStr.PadLeft(2, '0');
+
+                    }
+                    Console.Write( numStr+ " ");
                 }
                 Console.WriteLine("|");
             }
-            Console.WriteLine("+-------+-------+-------+");
+            Console.WriteLine("+----------+----------+----------+");
 
         }
 
-
-
-        public void printPossibilities() // function for testing purposes only
+        //creates a list of strings to print to a file and to the screen
+        public List<String> createListforPrint()
         {
+            //create a new list
+            List<String> outputStr = new List<String> { };
+
+            String line = "";
             for (int row = 0; row < this.boardSize; row++)
             {
+                line = ""; //reset line string
                 //line borders
                 if (row % this.boxSize == 0)
                 {
-                    Console.WriteLine("+-------+-------+-------+");
+                    outputStr.Add("+----------+----------+----------+");
                 }
 
                 for (int col = 0; col < this.boardSize; col++)
                 {
                     if (col % this.boxSize == 0)
                     {
-                        Console.Write("| ");
+                        line += ("| ");
                     }
-                    Console.Write(this.possibleValues[row, col] + " ");
-                }
-                Console.WriteLine("|");
-            }
-            Console.WriteLine("+-------+-------+-------+");
-        }
+                    //convert the number to string for formatting and print
+                    String numStr = Convert.ToString(this.grid[row, col]);
+                    if (this.grid[row, col] < 10)
+                    {
+                        //pad the number with a 0 if its a single digit
+                        numStr = numStr.PadLeft(2, '0');
 
+                    }
+                    line += (numStr + " ");
+                }
+                line +=("|");
+                outputStr.Add(line);
+            }
+            outputStr.Add("+----------+----------+----------+");
+
+            return outputStr;
+        }
 
         public bool SolveBoard()
         {
@@ -336,7 +358,7 @@ namespace SudokuSolver
             }
 
 
-            //test
+            
             //update the array of rowVals
             this.rowVals[row] |= (1 << (val - 1));
             //update the array of colVals
