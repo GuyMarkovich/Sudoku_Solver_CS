@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SudokuSolver
+namespace SudokuSolver.SudokuBoard
 {
     //this class holds functions that validate the input of the user
     internal class Validation
     {
         //check that the input string is of valid length
         //this solver supports boards of sizes 1x1, 4x4, 9x9, 16x16, 25x25
-        public Boolean validateInputLength(string input)
+        public bool validateInputLength(string input)
         {
             int totalLength = input.Length;
 
@@ -27,11 +27,11 @@ namespace SudokuSolver
                 return false;
             }
             else
-                return true;     
+                return true;
         }
 
         //funtion that checks if the current number is valid for a given size of board
-        public Boolean validNum(int boardLength, int num)
+        public bool validNum(int boardLength, int num)
         {
             if (num < 0 || num > boardLength) //a cell in the sudoku board can hold numbers from 0 (empty cell) up to the size of the board,
                                               //so if the number is outside this range, it is invalid
@@ -42,7 +42,7 @@ namespace SudokuSolver
             {
                 return true;
             }
-            
+
         }
 
 
