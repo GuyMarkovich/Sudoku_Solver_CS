@@ -11,4 +11,4 @@ In all cases a solution if one is found will be displayed to console.
 
 
 
-* Due to utilizing a backtracking algorithm, this solver will struglle with harder boards despite my best efforts (in the time given) to optimize the solution function
+* Due to utilizing a backtracking algorithm, this solver will struglle with harder boards despite my best efforts (in the time given and time available for me to work on this project) to optimize the solution function
